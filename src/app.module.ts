@@ -28,8 +28,8 @@ import { BullModule } from '@nestjs/bullmq';
       },
       defaultJobOptions: {
         attempts: 3,
-        removeOnComplete: 5,
-        removeOnFail: 10,
+        removeOnComplete: 5000,
+        removeOnFail: 100000,
         backoff: {
           type: 'exponential',
           delay: 1000,
