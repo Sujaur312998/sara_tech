@@ -5,6 +5,8 @@ import { UsersModule } from './users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from './config/db.config';
+import { NotificationModule } from './notification/notification.module';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
@@ -17,6 +19,22 @@ import { typeOrmConfig } from './config/db.config';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: typeOrmConfig,
+    }),
+    NotificationModule,
+    BullModule.forRoot({
+      connection: {
+        host: 'localhost',
+        port: 6379,
+      },
+      defaultJobOptions: {
+        attempts: 3,
+        removeOnComplete: 5,
+        removeOnFail: 10,
+        backoff: {
+          type: 'exponential',
+          delay: 1000,
+        },
+      },
     }),
   ],
   controllers: [AppController],

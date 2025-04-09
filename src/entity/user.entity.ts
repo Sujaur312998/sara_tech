@@ -1,4 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class User {
@@ -10,4 +11,12 @@ export class User {
 
   @Column()
   deviceToken: string;
+
+  @Exclude()
+  @Column()
+  createdAt: Date;
+
+  @Exclude()
+  @Column()
+  updatedAt: Date;
 }
