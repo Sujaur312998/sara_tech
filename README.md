@@ -97,3 +97,7 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+
+## docker run
+docker run --name pgadmin -p 15432:80 -e "PGADMIN_DEFAULT_EMAIL=email@test.com" -e "PGADMIN_DEFAULT_PASSWORD=pass" -d dpage/pgadmin4
