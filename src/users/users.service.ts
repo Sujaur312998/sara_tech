@@ -14,7 +14,7 @@ export class UsersService {
     return this.userRepository.find({
       select: ['id', 'name', 'deviceToken'],
       order: { id: 'ASC' },
-      take: 50,
+      take: 1000,
     });
   }
 }

@@ -4,6 +4,7 @@ import { NotificationController } from './notification.controller';
 import { NotificationService } from './notification.service';
 import { UsersModule } from '../users/users.module';
 import { NotificationsWorker } from './jobs/notification.worker';
+import { FirebaseModule } from '../firebase/firebase.module';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { NotificationsWorker } from './jobs/notification.worker';
       name: 'notification',
     }),
     UsersModule,
+    FirebaseModule,
   ],
   controllers: [NotificationController],
   providers: [NotificationService, NotificationsWorker],
