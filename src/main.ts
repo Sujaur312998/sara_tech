@@ -13,7 +13,7 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
-  //
+
   const config = new DocumentBuilder()
     .setTitle('NestJS Developer Test Project')
     .setDescription(

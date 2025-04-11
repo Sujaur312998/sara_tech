@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from './config/db.config';
 import { NotificationModule } from './notification/notification.module';
 import { BullModule } from '@nestjs/bullmq';
+import { redisConfig } from './config/redis.config';
 
 @Module({
   imports: [
@@ -21,20 +22,10 @@ import { BullModule } from '@nestjs/bullmq';
       useFactory: typeOrmConfig,
     }),
     NotificationModule,
-    BullModule.forRoot({
-      connection: {
-        host: 'localhost',
-        port: 6379,
-      },
-      defaultJobOptions: {
-        attempts: 3,
-        removeOnComplete: 5000,
-        removeOnFail: 100000,
-        backoff: {
-          type: 'exponential',
-          delay: 1000,
-        },
-      },
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: redisConfig,
     }),
   ],
   controllers: [AppController],

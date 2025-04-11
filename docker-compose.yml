@@ -1,0 +1,40 @@
+version: '3.9'
+
+services:
+  nestjs_sara_tech:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=development
+    volumes:
+      - ./src:/usr/src/app/src
+      - ./package.json:/usr/src/app/package.json
+      - ./package-lock.json:/usr/src/app/package-lock.json
+    depends_on:
+      - nestjs_db
+      - redis
+
+  nestjs_db:
+    image: postgres:latest
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=sara
+      - POSTGRES_PASSWORD=sara
+      - POSTGRES_DB=sara
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis/redis-stack:latest
+    ports:
+      - "6379:6379"
+      - "8001:8001"
+
+volumes:
+  pgdata:

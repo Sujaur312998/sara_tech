@@ -6,7 +6,7 @@ import { User } from '../entity/user.entity';
 
 const options: DataSourceOptions & SeederOptions = {
   type: 'postgres',
-  host: process.env.DB_HOST || 'localhost',
+  host: process.env.DB_HOST || 'nestjs_db',
   port: parseInt(process.env.DB_PORT || '5432'),
   username: process.env.DB_USERNAME || 'sara',
   password: process.env.DB_PASSWORD || 'sara',
