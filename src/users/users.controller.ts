@@ -8,10 +8,9 @@ export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @Post()
-  createUsers(@Body() createUserDto: CreateUserDto) {
+  async createUser(@Body() createUserDto: CreateUserDto) {
     //save user to pg user table
-    // instead of saveing i have seeded users
-    return createUserDto;
+    return await this.usersService.createUser(createUserDto);
   }
 
   @Get()

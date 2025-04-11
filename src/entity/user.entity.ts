@@ -1,4 +1,9 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Exclude } from 'class-transformer';
 
 @Entity()
@@ -13,10 +18,10 @@ export class User {
   deviceToken: string;
 
   @Exclude()
-  @Column()
+  @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt: Date;
 
   @Exclude()
-  @Column()
+  @CreateDateColumn({ type: 'timestamp with time zone' })
   updatedAt: Date;
 }
