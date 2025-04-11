@@ -1,103 +1,124 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# A Push Notification System
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A NestJS backend module for sending immediate and scheduled push notifications to users.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Features
 
-## Description
+- 📨 Send instant push notifications to all users
+- ⏱ Schedule notifications for future delivery
+- 👥 Mock user database with device tokens
+- 🔄 Uses Bull + Redis for job scheduling
+- ✅ Input validation with class-validator
+- 🔥 Optional Firebase Cloud Messaging (FCM) integration
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Tech Stack
 
-## Project setup
+- **Backend Framework**: NestJS
+- **Job Queue**: Bullmq with Redis
+- **Push Notifications**: Firebase Cloud Messaging (or console simulation)
+- **Validation**: class-validator, class-transformer
 
+## Prerequisites
+
+- Node.js (v16+)
+- Redis server (for job queue)
+- Firebase project (if using FCM)
+
+## Installation
+
+1. Clone the repository:
 ```bash
-$ npm install
+git clone https://github.com/Sujaur312998/sara_tech.git
+cd sara_tech
+npm install
 ```
-
-## Compile and run the project
-
+2. Firebase Cloud Messaging (FCM)
+   - **Create an project on Firebase**
+   - **Navigate to project settings > Service accounts**
+   - **Click Generate new private key**
+   - **you will find a josn file in your download folder**
+3. Configure Environment (.env.development)
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+PORT=3000
+DB_HOST=****
+DB_PORT=****
+DB_USERNAME=****
+DB_PASSWORD=*****
+DB_NAME=*****
+firebase=********************.json
 ```
-
-## Run tests
-
+4. Database Setup
+   -*Ensure PostgreSQL and Redis are running*
+6. Running the Application
+   Start the development server:
+   ```bash
+    npm run start:dev
+   ```
+7. Seed Database (Optional)
+   - To generate 40,000 mock users with device tokens:
+     ```bash
+      npm run seed
+     ```
+8. API Documentation
+   - Access Swagger UI at:
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+http://localhost:3000/api
 ```
+   - Available Endpoints
+       1. POST /push/send-now
+         -**Sends notification to all users immediately**
+       2. POST /push/schedule
+          -**Schedules notification for future deliverye**
 
-## Deployment
+## Architecture Overview
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+The system follows a distributed architecture with these core components:
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+1. **Database Layer**  
+   - *PostgreSQL*: Stores all user data including device tokens and notification metadata
 
-```bash
-$ npm install -g mau
-$ mau deploy
-```
+2. **API Layer**  
+   - *RESTful Endpoints*:  
+     - `/push/send-now` - For immediate notifications  
+     - `/push/schedule` - For scheduled notifications  
+   - *Validation*: Uses `class-validator` for request validation
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+3. **Queue Layer**  
+   - *Redis*: Serves as the backing store for BullMQ queues  
+   - *BullMQ*: Manages job queues with:  
+     - Immediate processing queue  
+     - Scheduled/delayed queue  
 
-## Resources
+4. **Worker Layer**  
+   - *Notification Workers*:  
+     - Process jobs from BullMQ queues  
+     - Handle retries and failures  
+     - Maintain concurrency control  
 
-Check out a few resources that may come in handy when working with NestJS:
+5. **Delivery Layer**  
+   - *Firebase Cloud Messaging (FCM)*:  
+     - Handles actual push notification delivery  
+     - Provides delivery receipts and analytics  
+   - *Fallback Mechanism*: (Optional) Webhook for failed deliveries
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## Workflow
 
-## Support
+1. **Client Request**  
+   - Makes request to either endpoint (`/push/send-now` or `/push/schedule`)
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+2. **Request Processing**  
+   - Request is validated using `class-validator`
+   - Payload is transformed using `class-transformer`
 
-## Stay in touch
+3. **Job Queueing**  
+   - Notification job is added to Redis queue via BullMQ
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+4. **Job Processing**  
+   - BullMQ worker picks up the job:
+     - For **immediate notifications**: Processes immediately
+     - For **scheduled notifications**: Processes at the scheduled time
 
-## License
+5. **Notification Delivery**  
+   - Worker sends the notification via Firebase Cloud Messaging (FCM)
+   - Delivery status is logged for monitoring
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
-
-
-## docker run
-docker run --name pgadmin -p 15432:80 -e "PGADMIN_DEFAULT_EMAIL=email@test.com" -e "PGADMIN_DEFAULT_PASSWORD=pass" -d dpage/pgadmin4
