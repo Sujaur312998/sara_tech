@@ -11,8 +11,9 @@ export class FirebaseService {
   constructor() {
     const serviceAccountPath = path.resolve(
       __dirname,
-      '../../firebase-adminsdk.json',
+      `../../${process.env.firebase}`,
     );
+    console.log(process.env.firebase);
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccountPath),
     });

@@ -37,6 +37,8 @@ npm install
    - **Navigate to project settings > Service accounts**
    - **Click Generate new private key**
    - **you will find a josn file in your download folder**
+   - **Place the json file to main project folder**
+
 3. Configure Environment (.env.development)
 ```bash
 PORT=3000
@@ -46,6 +48,8 @@ DB_USERNAME=****
 DB_PASSWORD=*****
 DB_NAME=*****
 firebase=********************.json
+REDIS_HOST=*****
+REDIS_PORT=*****
 ```
 4. Database Setup
    -*Ensure PostgreSQL and Redis are running*
