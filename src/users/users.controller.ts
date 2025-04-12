@@ -9,7 +9,6 @@ export class UsersController {
 
   @Post()
   async createUser(@Body() createUserDto: CreateUserDto) {
-    //save user to pg user table
     return await this.usersService.createUser(createUserDto);
   }
 

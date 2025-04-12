@@ -1,6 +1,0 @@
-node_modules
-test
-.gitignore
-.git
-.prettierrc
-# .env.development
