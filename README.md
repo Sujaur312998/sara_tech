@@ -54,9 +54,15 @@ REDIS_PORT=*****
 if you wana run through docker DB_HOST and REDIS_HOST set those value
 
 ```bash
+PORT=3000
 DB_HOST=nestjs_db
+DB_PORT=5432
+DB_USERNAME=sara
+DB_PASSWORD=sara
+DB_NAME=sara
+firebase=firebase-adminsdk.json
 REDIS_HOST=redis
-
+REDIS_PORT=6379
 ```
 and simply run docker cmd 
 ```bash
