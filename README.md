@@ -51,6 +51,17 @@ firebase=********************.json
 REDIS_HOST=*****
 REDIS_PORT=*****
 ```
+if you wana run through docker DB_HOST and REDIS_HOST set those value
+
+```bash
+DB_HOST=nestjs_db
+REDIS_HOST=redis
+
+```
+and simply run docker cmd 
+```bash
+docker compose up
+```
 4. Database Setup
    -*Ensure PostgreSQL and Redis are running*
 6. Running the Application
