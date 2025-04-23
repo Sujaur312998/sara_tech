@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   Injectable,
@@ -17,6 +19,7 @@ import { Repository } from 'typeorm';
 import { UpdateScheduleSendDto } from './dto/updateSchedule.dto';
 import { User } from 'src/entity/user.entity';
 import { UpdateNotification } from 'src/entity/update_notification.entity';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 interface ScheduleJobData {
   title: string;
@@ -224,5 +227,98 @@ export class NotificationService {
     return notifications
       .map((n) => n.user)
       .filter((u): u is User => !!u && !!u.deviceToken);
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_10PM)
+  async handleCron() {
+    let updates: UpdateScheduleSendDto[];
+    try {
+      updates = await this.updateNotificationRepository.find();
+    } catch (err) {
+      this.logger.error('Failed to fetch update notifications', err);
+      return;
+    }
+
+    for (const update of updates) {
+      try {
+        const jobId = update.jobId;
+
+        if (!jobId) {
+          this.logger.warn(
+            `Skipping update: Missing jobId in record ${update.jobId}`,
+          );
+          continue;
+        }
+
+        const existingJob: Job<ScheduleJobData> | null =
+          await this.notificationQueue.getJob(jobId.toString());
+
+        if (!existingJob) {
+          this.logger.error(`Job with ID ${jobId} not found`);
+          continue;
+        }
+
+        const { title, message, scheduleAt }: ScheduleJobData =
+          existingJob.data;
+
+        const newTitle = update.new_title ?? title;
+        const newMessage = update.new_message ?? message;
+        const newScheduleAt = update.new_scheduleAt ?? scheduleAt;
+
+        if (!newScheduleAt) {
+          this.logger.warn(
+            `Skipping update for job ${jobId}: scheduleAt is invalid`,
+          );
+          continue;
+        }
+
+        const newDelay = new Date(newScheduleAt).getTime() - Date.now();
+
+        if (isNaN(newDelay)) {
+          this.logger.error(
+            `Invalid scheduleAt value for job ${jobId}: ${newScheduleAt}`,
+          );
+          continue;
+        }
+
+        await existingJob
+          .remove()
+          .catch((err) =>
+            this.logger.warn(
+              `Failed to remove old job ${jobId}: ${err.message}`,
+            ),
+          );
+
+        const newJob = await this.notificationQueue.add(
+          'schedule',
+          {
+            title: newTitle,
+            message: newMessage,
+            scheduleAt: newScheduleAt,
+          },
+          {
+            delay: newDelay,
+            removeOnComplete: true,
+            removeOnFail: false,
+          },
+        );
+
+        await this.scheduleNotificationRepository.update(
+          { jobId: jobId },
+          { jobId: newJob.id },
+        );
+
+        await this.updateNotificationRepository.delete({ jobId: jobId });
+
+        this.logger.log(
+          `Rescheduled job ${jobId} -> new job ${newJob.id} with delay ${newDelay}ms`,
+        );
+      } catch (err) {
+        this.logger.error(
+          `Error processing update with jobId ${update.jobId}: ${err.message}`,
+          err.stack,
+        );
+      }
+    }
   }
 }

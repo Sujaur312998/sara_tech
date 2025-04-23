@@ -9,10 +9,13 @@ import { NotificationModule } from './notification/notification.module';
 import { BullModule } from '@nestjs/bullmq';
 import { redisConfig } from './config/redis.config';
 import { MethodNotAllowedMiddleware } from './middleware/method-not-allowed.middleware';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     UsersModule,
+    NotificationModule,
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env.development',
@@ -22,7 +25,6 @@ import { MethodNotAllowedMiddleware } from './middleware/method-not-allowed.midd
       inject: [ConfigService],
       useFactory: typeOrmConfig,
     }),
-    NotificationModule,
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
