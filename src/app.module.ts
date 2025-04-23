@@ -1,4 +1,4 @@
-import { Module, MiddlewareConsumer } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
@@ -8,7 +8,6 @@ import { typeOrmConfig } from './config/db.config';
 import { NotificationModule } from './notification/notification.module';
 import { BullModule } from '@nestjs/bullmq';
 import { redisConfig } from './config/redis.config';
-import { MethodNotAllowedMiddleware } from './middleware/method-not-allowed.middleware';
 import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
@@ -34,8 +33,4 @@ import { ScheduleModule } from '@nestjs/schedule';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(MethodNotAllowedMiddleware).forRoutes('*');
-  }
-}
+export class AppModule {}
