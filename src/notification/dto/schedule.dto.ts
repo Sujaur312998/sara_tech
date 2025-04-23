@@ -1,4 +1,10 @@
-import { IsDate, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsDate,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -6,13 +12,11 @@ export class ScheduleSendDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  // @Type(() => String)
   title: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  // @Type(() => String)
   message: string;
 
   @ApiProperty()
@@ -20,4 +24,10 @@ export class ScheduleSendDto {
   @IsNotEmpty()
   @Type(() => Date)
   scheduleAt: Date;
+
+  @ApiProperty({ type: [Number], required: false, nullable: true })
+  @IsOptional()
+  @IsArray()
+  @Type(() => Number)
+  userIds?: number[] | null;
 }

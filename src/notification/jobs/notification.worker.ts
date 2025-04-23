@@ -5,6 +5,8 @@ import { Logger } from '@nestjs/common';
 import { FirebaseService } from 'src/firebase/firebase.service';
 import { ScheduleSendDto } from '../dto/schedule.dto';
 import { SendNowDto } from '../dto/send-now.dto';
+import { NotificationService } from '../notification.service';
+import { User } from 'src/entity/user.entity';
 
 @Processor('notification', {
   limiter: { duration: 500, max: 20 },
@@ -15,27 +17,31 @@ export class NotificationsWorker extends WorkerHost {
 
   constructor(
     private readonly usersService: UsersService,
+    private readonly notificationService: NotificationService,
     private firebaseService: FirebaseService,
   ) {
     super();
   }
 
-  async process(job: Job<SendNowDto | ScheduleSendDto>) {
-    const { title } = job.data;
-    this.logger.log(`Starting job ${job.id}: ${title}`);
+  async process(job: Job<ScheduleSendDto>) {
+    this.logger.log(`Starting job ${job.id}: ${job.name}`);
 
+    let users: User[] = [];
     try {
-      const users = await this.usersService.findAll();
-      if (!users || users.length === 0) {
-        this.logger.warn(
-          `Job ${job.id}: No users found to send notifications.`,
-        );
-        return { success: false, reason: 'No users available' };
+      if (job.name === 'send-now') {
+        users = await this.usersService.findAll();
+      } else {
+        const jobId = job.id;
+        if (!jobId) {
+          this.logger.error(`Job ID is missing or invalid: ${job.id}`);
+          return { success: false, reason: 'Invalid job ID' };
+        }
+        users = await this.notificationService.notificationUserToken(jobId);
       }
 
       const deviceTokens = users
         .map((user) => user.deviceToken)
-        .filter(Boolean); // Remove null/undefined tokens
+        .filter(Boolean);
 
       if (deviceTokens.length === 0) {
         this.logger.warn(`Job ${job.id}: No valid device tokens found.`);
@@ -56,7 +62,6 @@ export class NotificationsWorker extends WorkerHost {
               (batchError as Error).message
             }`,
           );
-          // Optionally: continue to next batch even if one fails
           continue;
         }
 

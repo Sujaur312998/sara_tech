@@ -13,7 +13,6 @@ export class FirebaseService {
       __dirname,
       `../../${process.env.firebase}`,
     );
-    console.log(process.env.firebase);
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccountPath),
     });

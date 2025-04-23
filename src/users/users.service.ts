@@ -32,7 +32,7 @@ export class UsersService {
       return await this.userRepository.find({
         select: ['id', 'name', 'deviceToken'],
         order: { id: 'ASC' },
-        // take: 10,
+        take: 1000,
       });
     } catch (error) {
       this.logError('Failed to fetch users', error);
