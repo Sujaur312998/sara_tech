@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FCM Token Generator</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      button {
+        background-color: #4285f4;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      button:hover {
+        background-color: #3367d6;
+      }
+      #tokenArea {
+        width: 100%;
+        min-height: 100px;
+        margin: 20px 0;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-family: monospace;
+      }
+      .status {
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 4px;
+      }
+      .success {
+        background-color: #e6f4ea;
+        color: #1e8e3e;
+      }
+      .error {
+        background-color: #fce8e6;
+        color: #d93025;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Firebase Cloud Messaging Token Generator</h1>
+
+    <div id="status" class="status"></div>
+
+    <button id="requestPermission">Enable Notifications</button>
+
+    <h3>Your FCM Token:</h3>
+    <textarea id="tokenArea" readonly></textarea>
+
+    <button id="copyToken">Copy Token</button>
+    <button id="testNotification">Send Test Notification</button>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
+    <script>
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyCiX0TCPzd5MhOh-th1sfW0Nd4VqU2dAN0",
+        authDomain: "code-flee.firebaseapp.com",
+        projectId: "code-flee",
+        storageBucket: "code-flee.firebasestorage.app",
+        messagingSenderId: "751980261836",
+        appId: "1:751980261836:web:20ad32f3395510dae0ad69",
+      };
+
+      // Initialize Firebase
+      const app = firebase.initializeApp(firebaseConfig);
+      const messaging = firebase.messaging();
+
+      // DOM elements
+      const tokenArea = document.getElementById("tokenArea");
+      const statusDiv = document.getElementById("status");
+      const requestPermissionBtn = document.getElementById("requestPermission");
+      const copyTokenBtn = document.getElementById("copyToken");
+      const testNotificationBtn = document.getElementById("testNotification");
+
+      // Register service worker
+      function registerServiceWorker() {
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker
+            .register("firebase-messaging-sw.js")
+            .then((registration) => {
+              console.log(
+                "Service Worker registered with scope:",
+                registration.scope
+              );
+              updateStatus("Service worker registered successfully", "success");
+            })
+            .catch((err) => {
+              console.error("Service Worker registration failed:", err);
+              updateStatus(
+                "Service worker registration failed: " + err.message,
+                "error"
+              );
+            });
+        } else {
+          updateStatus(
+            "Service workers are not supported in this browser",
+            "error"
+          );
+        }
+      }
+
+      // Request notification permission
+      requestPermissionBtn.addEventListener("click", async () => {
+        try {
+          const permission = await Notification.requestPermission();
+
+          if (permission === "granted") {
+            updateStatus("Notification permission granted", "success");
+            await getFCMToken();
+          } else {
+            updateStatus("Notification permission denied", "error");
+          }
+        } catch (error) {
+          console.error("Error requesting notification permission:", error);
+          updateStatus(
+            "Error requesting permission: " + error.message,
+            "error"
+          );
+        }
+      });
+
+      async function getFCMToken() {
+        try {
+          const currentToken = await messaging.getToken({
+            vapidKey:
+              "BP-czbbc-N8TzxLTW_HXMnpgbM1fnIi42_REfQhqlYX1I7OaXIoAEcwMvqAuiJl8H72ya-nmmAWPvu--oLkoQ-Y",
+          });
+
+          if (currentToken) {
+            tokenArea.value = currentToken;
+            updateStatus("FCM token generated successfully", "success");
+            console.log("FCM Token:", currentToken);
+          } else {
+            updateStatus("No registration token available", "error");
+          }
+        } catch (error) {
+          console.error("An error occurred while retrieving token:", error);
+          updateStatus("Error getting token: " + error.message, "error");
+        }
+      }
+
+      messaging.onTokenRefresh(() => {
+        messaging
+          .getToken({
+            vapidKey:
+              "BP-czbbc-N8TzxLTW_HXMnpgbM1fnIi42_REfQhqlYX1I7OaXIoAEcwMvqAuiJl8H72ya-nmmAWPvu--oLkoQ-Y",
+          })
+          .then((newToken) => {
+            tokenArea.value = newToken;
+            updateStatus("FCM token refreshed", "success");
+            console.log("Token refreshed:", newToken);
+          })
+          .catch((error) => {
+            console.error("Unable to refresh token:", error);
+            updateStatus("Error refreshing token: " + error.message, "error");
+          });
+      });
+
+      messaging.onMessage((payload) => {
+        console.log("Message received:", payload);
+        updateStatus("New notification received", "success");
+
+        const notificationTitle = payload.notification?.title || "New message";
+        const notificationOptions = {
+          body: payload.notification?.body,
+          icon: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQAtr1wNK_ya-Hf2JiRJ1hpRpSgG3W0YUj8mlSZgawgWSV_1opRRMFajFd4NoCeGKj-j8k&usqp=CAU",
+        };
+
+        if (Notification.permission === "granted") {
+          new Notification(notificationTitle, notificationOptions);
+        }
+      });
+
+      // Copy token to clipboard
+      copyTokenBtn.addEventListener("click", () => {
+        tokenArea.select();
+        document.execCommand("copy");
+        updateStatus("Token copied to clipboard", "success");
+      });
+
+      testNotificationBtn.addEventListener("click", () => {
+        if (tokenArea.value) {
+          if (Notification.permission === "granted") {
+            new Notification("Test Notification", {
+              body: "This is a test notification from your app",
+              icon: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQAtr1wNK_ya-Hf2JiRJ1hpRpSgG3W0YUj8mlSZgawgWSV_1opRRMFajFd4NoCeGKj-j8k&usqp=CAU",
+            });
+            updateStatus("Test notification shown", "success");
+          } else {
+            updateStatus("Please enable notifications first", "error");
+          }
+        } else {
+          updateStatus("Please generate a token first", "error");
+        }
+      });
+
+      function updateStatus(message, type) {
+        statusDiv.textContent = message;
+        statusDiv.className = "status " + type;
+      }
+
+      registerServiceWorker();
+    </script>
+  </body>
+</html>
